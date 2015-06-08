@@ -1,0 +1,62 @@
+<dom-module id="my-profil">
+  <style>
+    :host {
+      display: block;
+    }
+
+    #fabTest {
+      position: absolute !important;
+      right: 10px;
+      top: 10px;
+    }
+  </style>
+  <template>
+    <h1 class="paper-font-display1"><span>Profil</span></h1>
+
+    <h4 id="h3Username">Username:</h4>
+    <h4 id="h3Email">Email:</h4>
+    <h4 id="h3Provider">Provider:</h4>
+
+    <paper-fab id="fabTest" mini icon="polymer" on-click="test"></paper-fab>
+  </template>
+</dom-module>
+
+<script>
+  (function() {
+    Polymer({
+      is: 'my-profil',
+
+      routeTo: function(route) {
+        document.querySelector('#app').route = route;
+      },
+
+      loadUserProfile: function() {
+        var id = document.querySelector('#app').getUserId();
+        var uname = document.querySelector('#app').getUsername();
+
+        if ((typeof id === 'undefined') || (typeof uname === 'undefined')) {
+          this.routeTo('login');
+        }
+
+        var that = this;
+        var rootRef = new Firebase("https://glaring-heat-4928.firebaseio.com/users/" + id);
+        rootRef.on("value", function(snapshot) {
+          var profile = snapshot.val();
+
+          that.$.h3Username.innerHTML = "Username: " + profile.name;
+          that.$.h3Email.innerHTML = (typeof profile.email === 'undefined') ? 'Email: Placeholder' : 'Email: ' + profile.email;
+          that.$.h3Provider.innerHTML = "Provider: " + profile.provider;
+        });
+
+      },
+
+      test: function() {
+        this.loadUserProfile();
+      },
+
+      ready: function() {
+        //this.loadUserProfile();
+      }
+    })
+  })();
+</script>

@@ -1,0 +1,108 @@
+<dom-module id="my-login">
+  <style>
+    :host {
+      display: block;
+    }
+
+    #btnLogin {
+      background: #3F51B5;
+      color: #f9f9f9;
+    }
+  </style>
+  <template>
+    <h1 class="paper-font-display1"><span>Login</span></h1>
+
+    <label for="txtEmailaddress">Email:</label><br/>
+    <input id="txtEmailaddress" type="email" value="{{emailAddress::input}}" />
+    <br/><hr/>
+    <label for="txtPassword">Password:</label><br/>
+    <input id="txtPassword" type="password" value="{{password::input}}" />
+    <br/><hr/>
+    <paper-button id="btnLogin" on-click="submitLogin">Login</paper-button>
+  </template>
+</dom-module>
+
+<script>
+  (function() {
+    Polymer({
+      is: 'my-login',
+
+      properties: {
+        emailAddress: {
+          type: String,
+          value: 'flbk2@test.com',
+          notify: true
+        },
+        password: {
+          type: String,
+          value: 'hallo',
+          notify: true
+        }
+      },
+
+      clearInputs: function() {
+        this.$.txtEmailaddress.value = "";
+        this.$.txtPassword.value = "";
+      },
+
+      routeTo: function(id, route) {
+        document.querySelector('#app').setUserId(id);
+        document.querySelector('#app').route = route;
+      },
+
+      showInfoToast: function(text, color) {
+        var info_toast = document.querySelector('#toast-info');
+        info_toast.text = text;
+        info_toast.style.background = color;
+        info_toast.toggle();
+      },
+
+      getUsername: function(userId) {
+        var ref = new Firebase("https://glaring-heat-4928.firebaseio.com/users/" + userId);
+        ref.on("value", function(snapshot){
+          var user = snapshot.val();
+          document.querySelector('#app').setUsername(user.name);
+        });
+      },
+
+      handleAuthResponse: function(promise, route) {
+        var that = this;
+
+        $.when(promise)
+          .then(function (authData) {
+            var userId = authData.uid;
+            that.getUsername(userId);
+            that.routeTo(userId, route);
+          }, function (err) {
+            console.log(err);
+            this.showInfoToast("Error Code: " + err.code + " Message: " + err.message, "RED");
+          });
+      },
+
+      authWithPassword: function(userObj) {
+        var deferred = $.Deferred();
+        var rootRef = new Firebase("https://glaring-heat-4928.firebaseio.com/");
+        rootRef.authWithPassword(userObj, function onAuth(err, user) {
+          if (err) deferred.reject(err);
+          if (user) deferred.resolve(user);
+        });
+        return deferred.promise();
+      },
+
+      submitLogin: function(e) {
+        var emailAddress = this.$.txtEmailaddress.value;
+        var password = this.$.txtPassword.value;
+
+        var user = {
+          "email": emailAddress,
+          "password": password
+        };
+
+        var loginPromise = this.authWithPassword(user);
+        e.preventDefault();
+        this.handleAuthResponse(loginPromise, 'erfassung');
+        this.clearInputs();
+      }
+    });
+  })();
+</script>

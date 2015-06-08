@@ -1,0 +1,139 @@
+<dom-module id="my-register">
+  <style>
+    :host {
+      display: block;
+    }
+
+    #btnRegister {
+      background: #3F51B5;
+      color: #f9f9f9;
+    }
+  </style>
+  <template>
+    <h1 class="paper-font-display1"><span>Register</span></h1>
+
+    <label for="txtEmailaddress">Email:</label><br/>
+    <input id="txtEmailaddress" type="email" value="{{emailAddress::input}}" />
+    <br/><hr/>
+    <label for="txtPassword">Password:</label><br/>
+    <input id="txtPassword" type="password" value="{{password::input}}" />
+    <br/><hr/>
+    <paper-button id="btnRegister" on-click="submitRegister" raised>Register</paper-button>
+  </template>
+</dom-module>
+
+<script>
+  (function() {
+    Polymer({
+      is: 'my-register',
+
+      properties: {
+        emailAddress: {
+          type: String,
+          value: '',
+          notify: true
+        },
+        password: {
+          type: String,
+          value: '',
+          notify: true
+        }
+      },
+
+      clearInputs: function() {
+        this.$.txtEmailaddress.value = "";
+        this.$.txtPassword.value = "";
+      },
+
+      routeTo: function(id, route) {
+        document.querySelector('#app').setUserId(id);
+        document.querySelector('#app').route = route;
+      },
+
+      showInfoToast: function(text, color) {
+        var info_toast = document.querySelector('#toast-info');
+        info_toast.text = text;
+        info_toast.style.background = color;
+        info_toast.toggle();
+      },
+
+      handleAuthResponse: function(promise, route) {
+        var that = this;
+
+        $.when(promise)
+          .then(function (authData) {
+            var userId = authData.uid;
+            that.routeTo(userId, route);
+          }, function (err) {
+            console.log(err);
+            this.showInfoToast("Error Code: " + err.code + " Message: " + err.message, "RED");
+          });
+      },
+
+      getName: function(authData) {
+        switch(authData.provider) {
+          case 'password':
+            var name = authData.password.email.replace(/@.*/, '');
+            document.querySelector('#app').setUsername(name);
+            return name;
+        }
+      },
+
+      authWithPassword: function(userObj) {
+        var that = this;
+        var deferred = $.Deferred();
+        var rootRef = new Firebase("https://glaring-heat-4928.firebaseio.com/");
+        rootRef.authWithPassword(userObj, function onAuth(err, user) {
+          if (err) deferred.reject(err);
+          if (user) deferred.resolve(user);
+
+          if (user) {
+            rootRef.child("users").child(user.uid).set({
+              provider: user.provider,
+              name: that.getName(user),
+              email: user.password.email
+            });
+          }
+        });
+        return deferred.promise();
+      },
+
+      createUser: function(userObj) {
+        var deferred = $.Deferred();
+        var rootRef = new Firebase("https://glaring-heat-4928.firebaseio.com/");
+        rootRef.createUser(userObj, function (err, user) {
+
+          if (!err) deferred.resolve();
+          else deferred.reject(err)
+
+        });
+        return deferred.promise();
+      },
+
+      createUserAndLogin: function(userObj) {
+        var that = this;
+
+        return that.createUser(userObj)
+          .then(function () {
+            return that.authWithPassword(userObj);
+          });
+      },
+
+      submitRegister: function(e) {
+        var emailAddress = this.$.txtEmailaddress.value;
+        var password = this.$.txtPassword.value;
+
+        var user = {
+          "email": emailAddress,
+          "password": password
+        };
+
+        var loginPromise = this.createUserAndLogin(user);
+        e.preventDefault();
+        this.handleAuthResponse(loginPromise, 'erfassung');
+        this.clearInputs();
+      }
+    });
+  })();
+</script>
+

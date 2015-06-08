@@ -1,0 +1,63 @@
+<dom-module id="my-uebersicht">
+  <style>
+    :host {
+      display: block;
+    }
+
+    #fabTest {
+      position: absolute !important;
+      right: 10px;
+      top: 10px;
+    }
+  </style>
+  <template>
+    <h1 class="paper-font-display1"><span>Übersicht</span></h1>
+
+    <my-zeiteintrag-list zeiteintraege$="{{zeiteintraege}}"></my-zeiteintrag-list>
+
+    <paper-fab id="fabTest" mini icon="polymer" on-click="loadUebersicht"></paper-fab>
+  </template>
+</dom-module>
+
+<script>
+  (function() {
+    Polymer({
+      is: 'my-uebersicht',
+
+      routeTo: function(route) {
+        document.querySelector('#app').route = route;
+      },
+
+      loadUebersicht: function() {
+        var id = document.querySelector('#app').getUserId();
+        var uname = document.querySelector('#app').getUsername();
+
+        if ((typeof id === 'undefined') || (typeof uname === 'undefined')) {
+          this.routeTo('login');
+        }
+
+        var that = this;
+        var rootRef = new Firebase("https://glaring-heat-4928.firebaseio.com/erfassung/" + id);
+        rootRef.on("value", function(snapshot) {
+
+          snapshot.forEach(function(child) {
+
+            var zeintrag = child.val();
+            that.zeiteintraege.push(zeintrag);
+
+          });
+        });
+      },
+
+      ready: function() {
+        this.zeiteintraege = this.zeiteintraege || [];
+      }
+
+      /*
+       {"projekt": "p1", "vorgang": "v1", "artikel": "a1", "datum": "null", "dauer": "08:00", "bemerkung": "b1"},
+       {"projekt": "p2", "vorgang": "v2", "artikel": "a2", "datum": "null", "dauer": "09:00", "bemerkung": "b2"},
+       {"projekt": "p3", "vorgang": "v3", "artikel": "a3", "datum": "null", "dauer": "10:00", "bemerkung": "b3"}
+      */
+    })
+  })();
+</script>

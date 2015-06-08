@@ -1,0 +1,34 @@
+<dom-module id="my-zeiteintrag-list">
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+  <template>
+
+    <template is="dom-repeat" items="{{zeiteintraege}}">
+      <my-zeiteintrag-item zeiteintrag$="{{item}}"></my-zeiteintrag-item>
+    </template>
+
+  </template>
+</dom-module>
+<script>
+  (function () {
+    Polymer({
+      is: 'my-zeiteintrag-list',
+
+      properties: {
+        zeiteintraege: {
+          type: Array,
+          value: [],
+          notify: true,
+          reflectToAttribute: true
+        }
+      },
+
+      ready: function() {
+        this.zeiteintraege = this.zeiteintraege || [];
+      }
+    });
+  })();
+</script>

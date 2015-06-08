@@ -1,0 +1,42 @@
+<dom-module id="my-zeiteintrag-item">
+  <style>
+    :host {
+      display: block;
+    }
+  </style>
+  <template>
+
+    <paper-material elevation="1">
+      <ul>
+        <li>Projekt: <span class="paper-font-body1">{{zeiteintrag.projekt}}</span></li>
+        <li>Vorgang: <span class="paper-font-body1">{{zeiteintrag.vorgang}}</span></li>
+        <li>Artikel: <span class="paper-font-body1">{{zeiteintrag.artikel}}</span></li>
+        <li>Datum: <span class="paper-font-body1">{{zeiteintrag.datum}}</span></li>
+        <li>Dauer: <span class="paper-font-body1">{{zeiteintrag.dauer}}</span></li>
+        <li>Bemerkung: <span class="paper-font-body1">{{zeiteintrag.bemerkung}}</span></li>
+      </ul>
+    </paper-material>
+
+  </template>
+</dom-module>
+
+<script>
+  (function () {
+    Polymer({
+      is: 'my-zeiteintrag-item',
+
+      properties: {
+        zeiteintrag: {
+          type: Object,
+          value: {},
+          notify: true,
+          reflectToAttribute: true
+        }
+      },
+
+      ready: function() {
+        this.zeiteintrag = this.zeiteintrag || {};
+      }
+    });
+  })();
+</script>

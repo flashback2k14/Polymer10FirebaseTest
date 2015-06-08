@@ -1,0 +1,146 @@
+<dom-module id="my-erfassung">
+  <style>
+    :host {
+      display: block;
+    }
+
+    #btnFertig {
+      background: #3F51B5;
+      color: #f9f9f9;
+    }
+
+    #fabTest {
+      position: absolute !important;
+      right: 10px;
+      top: 10px;
+    }
+  </style>
+  <template>
+    <h1 class="paper-font-display1"><span>Erfassung</span></h1>
+    <label for="txtProjekt">Projekt:</label><br/>
+    <input id="txtProjekt" type="text" value="{{projekt::input}}" />
+    <br/>
+    <label for="txtVorgang">Vorgang:</label><br/>
+    <input id="txtVorgang" type="text" value="{{vorgang::input}}" />
+    <br/>
+    <label for="txtArtikel">Artikel:</label><br/>
+    <input id="txtArtikel" type="text" value="{{artikel::input}}" />
+    <br/>
+    <label for="txtDatum">Datum:</label><br/>
+    <input id="txtDatum" type="date" value="{{datum::input}}" />
+    <br/>
+    <label for="txtDauer">Dauer:</label><br/>
+    <input id="txtDauer" type="time" value="{{dauer::input}}" />
+    <br/>
+    <label for="txtBemerkung">Bemerkung:</label><br/>
+    <input id="txtBemerkung" type="text" aria-multiline="true" value="{{bemerkung::input}}" />
+    <br/><hr/>
+    <paper-button id="btnFertig" on-click="submitErfassung" raised>Fertig</paper-button>
+    <paper-fab id="fabTest" mini icon="polymer" on-click="test"></paper-fab>
+  </template>
+</dom-module>
+
+<script>
+  (function() {
+    Polymer({
+      is: 'my-erfassung',
+
+      properties: {
+        projekt: {
+          type: String,
+          value: '',
+          notify: true
+        },
+        vorgang: {
+          type: String,
+          value: '',
+          notify: true
+        },
+        artikel: {
+          type: String,
+          value: '',
+          notify: true
+        },
+        datum: {
+          type: Date,
+          value: '',
+          notify: true
+        },
+        dauer: {
+          type: Date,
+          value: '',
+          notify: true
+        },
+        bemerkung: {
+          type: String,
+          value: '',
+          notify: true
+        }
+      },
+
+      clearInputs: function() {
+        this.$.txtProjekt.value = "";
+        this.$.txtVorgang.value = "";
+        this.$.txtArtikel.value = "";
+        this.$.txtDatum.value = "";
+        this.$.txtDauer.value = "";
+        this.$.txtBemerkung.value = "";
+      },
+
+      routeTo: function(route) {
+        document.querySelector('#app').route = route;
+      },
+
+      showInfoToast: function(text) {
+        var info_toast = document.querySelector('#toast-info');
+        info_toast.text = text;
+        info_toast.toggle();
+      },
+
+      submitErfassung: function() {
+        var id = document.querySelector('#app').getUserId();
+        var uname = document.querySelector('#app').getUsername();
+
+        if ((typeof id === 'undefined') || (typeof uname === 'undefined')) {
+          this.routeTo('login');
+        }
+
+        var projekt = this.$.txtProjekt.value;
+        var vorgang = this.$.txtVorgang.value;
+        var artikel = this.$.txtArtikel.value;
+        var datum = this.$.txtDatum.value;
+        var dauer = this.$.txtDauer.value;
+        var bemerkung = this.$.txtBemerkung.value;
+
+        var erfassungsData = {
+          "user": uname,
+          "projekt": projekt,
+          "vorgang": vorgang,
+          "artikel": artikel,
+          "datum": datum,
+          "dauer": dauer,
+          "bemerkung": bemerkung
+        };
+
+        var that = this;
+        var rootRef = new Firebase("https://glaring-heat-4928.firebaseio.com/erfassung/" + id);
+        var erfassungRef = rootRef.push();
+        erfassungRef.set(erfassungsData, function onComplete() {
+          that.showInfoToast("Erfassung erfolgreich!");
+          that.clearInputs();
+        });
+      },
+
+      test: function() {
+        var id = document.querySelector('#app').getUserId();
+        var uname = document.querySelector('#app').getUsername();
+
+        alert('Id: ' + id + ' Username: ' + uname);
+
+        if ((typeof id === 'undefined') || (typeof uname === 'undefined')) {
+          this.routeTo('login');
+        }
+      }
+    })
+  })();
+</script>
